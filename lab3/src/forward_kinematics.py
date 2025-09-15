@@ -17,29 +17,29 @@ def ur7e_foward_kinematics_from_angles(joint_anges):
     ------------
     (4x4) np.ndarray: homogenous transformation matrix
     """
-    q0 = np.ndarray((3, 8)) # Points on each joint axis in the zero config
-    w0 = np.ndarray((3, 7)) # Axis vector of each joint axis in the zero config
+    q0 = np.ndarray((3, 6)) # Points on each joint axis in the zero config
+    w0 = np.ndarray((3, 6)) # Axis vector of each joint axis in the zero config
 
-    q0[0:3,0] = [0.000, 0.000, 0.162]
-    q0[0:3,1] = [-0.000, 0.000, 0.162]
-    q0[0:3,2] = [-0.010, 0.307, 0.457]
-    q0[0:3,3] = [0.111, 0.698, 0.520]
-    q0[0:3,4] = [0.112, 0.691, 0.619]
-    q0[0:3,5] = [0.119, 0.790, 0.626]
-    q0[0:3,6] = [0.119, 0.790, 0.626]
-    q0[0:3,7] = [0.119, 0.790, 0.626]
 
-    w0[0:3,0] = [0.000000, 0.000000, 1.000000]
-    w0[0:3,1] = [0.999518, 0.031006, 0.000630]
-    w0[0:3,2] = [0.999090, 0.031130, -0.000100]
-    w0[0:3,3] = [1.000060, 0.033020, -0.000400]
-    w0[0:3,4] = [0.003186, -0.072162, 0.997390]
-    w0[0:3,5] = [0.077920, 0.994020, 0.073400]
-    w0[0:3,6] = [0.004306, -0.072282, 0.997374]
+    q0[:, 0] = [0., 0., 0.1625] # shoulder pan joint - shoulder_link
+    q0[:, 1] = [0., 0., 0.1625] # shoulder lift joint - upper_arm_link
+    q0[:, 2] = [0.425, 0., 0.1625] # elbow_joint - forearm_link
+    q0[:, 3] = [0.817, 0.1333, 0.1625] # wrist 1 - wrist_1_link
+    q0[:, 4] = [0.817, 0.1333, 0.06285] # wrist 2 - wrist_2_link
+    q0[:, 5] = [0.817, 0.233, 0.06285] # wrist 3 - wrist_3_link
 
-    R = np.array([[-0.9964, 0.0042, 0.0770],
-                    [ 0.0387, -0.0734, 0.9940],
-                    [ 0.00496, 0.9985, 0.074]])
+    w0[:, 0] = [0., 0., 1] # shoulder pan joint
+    w0[:, 1] = [0, 1., 0] # shoulder lift joint
+    w0[:, 2] = [0., 1., 0] # elbow_joint
+    w0[:, 3] = [0., 1., 0] # wrist 1
+    w0[:, 4] = [0., 0., -1] # wrist 2 
+    w0[:, 5] = [0., 1., 0] # wrist 3
+
+    # Rotation matrix from base_link to wrist_3_link in zero config
+    R = np.array([[1., 0., 0.],
+                  [0., 0., -1], 
+                  [0., 1., 0.]])
+
     # YOUR CODE HERE (Task 1)
 
 
@@ -57,11 +57,10 @@ def ur7e_forward_kinematics_from_joint_state(joint_state):
     (4x4) np.ndarray: homogenous transformation matrix
     """
     
-    angles = np.zeros(7)
-
+    angles = np.zeros(6)
+    angles[0] = joint_state.position[-1]
+    angles[1:] = joint_state.position[0:5]
     # YOUR CODE HERE (Task 2)
     
 
     # END YOUR CODE HERE
-    trans_mat = ur7e_foward_kinematics_from_angles(angles)
-    print(trans_mat)
