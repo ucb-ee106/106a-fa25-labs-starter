@@ -58,8 +58,6 @@ def ur7e_forward_kinematics_from_joint_state(joint_state):
     """
     
     angles = np.zeros(6)
-    angles[0] = joint_state.position[-1]
-    angles[1:] = joint_state.position[0:5]
     # YOUR CODE HERE (Task 2)
     
 
