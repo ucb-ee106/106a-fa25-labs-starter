@@ -4,7 +4,7 @@ import numpy as np
 import scipy as sp
 import kin_func_skeleton as kfs 
 
-def ur7e_foward_kinematics_from_angles(joint_anges):
+def ur7e_foward_kinematics_from_angles(joint_angles):
     """
     Calculate the orientation of the ur7e's end-effector tool given
     the joint angles of each joint in radians
