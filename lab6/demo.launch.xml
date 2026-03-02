@@ -6,12 +6,12 @@
   <arg name="sensor_topic" default="/scan"/>
   <arg name="vis_topic" default="/vis/map"/>
   <!-- Dimensions and bounds -->
-  <arg name="x_num" default="25"/>
-  <arg name="x_min" default="-10.0"/>
-  <arg name="x_max" default="10.0"/>
-  <arg name="y_num" default="25"/>
-  <arg name="y_min" default="-10.0"/>
-  <arg name="y_max" default="10.0"/>
+  <arg name="x_num_arg" default="25"/>
+  <arg name="x_min_arg" default="-10.0"/>
+  <arg name="x_max_arg" default="10.0"/>
+  <arg name="y_num_arg" default="25"/>
+  <arg name="y_min_arg" default="-10.0"/>
+  <arg name="y_max_arg" default="10.0"/>
   <!-- Update parameters -->
   <arg name="occupied_update" default="0.7"/>
   <arg name="occupied_threshold" default="0.97"/>
@@ -28,12 +28,12 @@
     <param name="frames/sensor" value="$(var sensor_frame)"/>
     <param name="topics/vis" value="$(var vis_topic)"/>
     <param name="topics/sensor" value="$(var sensor_topic)"/>
-    <param name="x/num" value="$(var x_num)"/>
-    <param name="x/min" value="$(var x_min)"/>
-    <param name="x/max" value="$(var x_max)"/>
-    <param name="y/num" value="$(var y_num)"/>
-    <param name="y/min" value="$(var y_min)"/>
-    <param name="y/max" value="$(var y_max)"/>
+    <param name="x_num_param" value="$(var x_num_arg)"/>
+    <param name="x_min_param" value="$(var x_min_arg)"/>
+    <param name="x_max_param" value="$(var x_max_arg)"/>
+    <param name="y_num_param" value="$(var y_num_arg)"/>
+    <param name="y_min_param" value="$(var y_min_arg)"/>
+    <param name="y_max_param" value="$(var y_max_arg)"/>
     <param name="update/occupied" value="$(var occupied_update)"/>
     <param name="update/occupied_threshold" value="$(var occupied_threshold)"/>
     <param name="update/free" value="$(var free_update)"/>
