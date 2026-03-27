@@ -1,6 +1,7 @@
 import rclpy
 import cv2
 import os
+import sys
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import PointStamped
@@ -8,6 +9,8 @@ from cv_bridge import CvBridge
 import numpy as np
 from ament_index_python.packages import get_package_share_directory
 from ultralytics import YOLO
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 class ImageSubscriber(Node):
     def __init__(self):
@@ -25,14 +28,27 @@ class ImageSubscriber(Node):
         self.cone_position_pub = self.create_publisher(PointStamped, '/goal_point', 1)
         self.camera_intrinsics = None
 
+        if len(sys.argv) > 1 and sys.argv[1] == 'display_yolo':
+            self.display_yolo = True
+            plt.ion()
+            self.fig, self.ax = plt.subplots(1, 1, figsize=(12, 8))
+            self.fig.canvas.manager.set_window_title('YOLO Cone Segmentation')
+        else:
+            self.display_yolo = False
+
         self.get_logger().info('Image Subscriber Node initialized')
+        self.camera_intrinsics = 'bonk'
 
     def image_callback(self, msg):
         if self.camera_intrinsics is None:
+            self.get_logger().warn("No Camera Intrinsics!")
             return
 
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         results = self.model(cv_image, verbose=False)
+
+        if self.display_yolo:
+            self.visualize_results(cv_image, results)
 
         for result in results:
             if result.masks is not None:
@@ -53,7 +69,7 @@ class ImageSubscriber(Node):
 
 
                     # TODO: Get u, and v of cone in image coordinates
-                    u, v = 0.
+                    u, v = [0. , 0.]
 
                     # TODO: Find X , Y , Z of cone
                     X = 0.
@@ -85,6 +101,66 @@ class ImageSubscriber(Node):
         # -------------------------------------------
         self.get_logger().info("Recieved Camera Info")
         
+
+    def visualize_results(self, image, results):
+        """
+        Visualize YOLO segmentation results using matplotlib.
+        Args:
+            image: Input image (numpy array)
+            results: YOLO results object
+        """
+        self.ax.clear()
+        display_image = image[:, :, ::-1]
+        self.ax.imshow(display_image)
+        img_height, img_width = image.shape[:2]
+
+        for result in results:
+            if result.masks is not None:
+                masks = result.masks.data.cpu().numpy()
+                self.get_logger().info(f'Drawing {len(masks)} segmentation masks')
+
+                for i, mask in enumerate(masks):
+                    self.get_logger().info(f'Mask {i} shape: {mask.shape}, Image shape: {img_height}x{img_width}')
+
+                    if mask.shape != (img_height, img_width):
+                        mask_resized = cv2.resize(mask, (img_width, img_height),
+                                                 interpolation=cv2.INTER_LINEAR)
+                    else:
+                        mask_resized = mask
+
+                    bright_green = (0.0, 1.0, 0.0)
+                    colored_mask = np.zeros((img_height, img_width, 4))
+                    colored_mask[mask_resized > 0.5] = [*bright_green, 0.6]
+
+                    self.ax.imshow(colored_mask, interpolation='nearest')
+
+            boxes = result.boxes
+            if boxes is not None and len(boxes) > 0:
+                for i, box in enumerate(boxes):
+                    x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                    conf = box.conf[0].cpu().numpy()
+                    cls = int(box.cls[0].cpu().numpy())
+
+                    width = x2 - x1
+                    height = y2 - y1
+                    color = plt.cm.tab10(i % 10)[:3]
+
+                    rect = patches.Rectangle(
+                        (x1, y1), width, height,
+                        linewidth=2, edgecolor=color, facecolor='none'
+                    )
+                    self.ax.add_patch(rect)
+
+                    label = f'Cone {i+1}: {conf:.2f}'
+                    self.ax.text(
+                        x1, y1 - 5, label,
+                        color='white', fontsize=10, weight='bold',
+                        bbox=dict(boxstyle='round,pad=0.3', facecolor=color, alpha=0.7)
+                    )
+
+        self.ax.axis('off')
+        self.ax.set_title('YOLO Cone Segmentation', fontsize=14, weight='bold')
+        plt.pause(0.001)
 
 def main(args=None):
     rclpy.init(args=args)
